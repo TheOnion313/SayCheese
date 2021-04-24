@@ -1,77 +1,81 @@
-from scipy.spatial import distance as dist
-from imutils.video import VideoStream, FPS
+from cv2 import VideoCapture
 from imutils import face_utils
+from math import dist
+
 import imutils
 import numpy as np
 import time
 import dlib
 import cv2
 
+FACE_IDX = (48, 68)
 
-def smile(mouth):
-    A = dist.euclidean(mouth[3], mouth[9])
-    B = dist.euclidean(mouth[2], mouth[10])
-    C = dist.euclidean(mouth[4], mouth[8])
-    avg = (A + B + C) / 3
-    D = dist.euclidean(mouth[0], mouth[6])
-    mar = avg / D
-    return mar
-
-
-COUNTER = 0
-TOTAL = 0
-
-shape_predictor = "shape_predictor_68_face_landmarks.dat"  # face_landmark
+shape_predictor = "./shape_predictor_68_face_landmarks.dat"
 detector = dlib.get_frontal_face_detector()
 predictor = dlib.shape_predictor(shape_predictor)
+(mStart, mEnd) = FACE_IDX
 
-(mStart, mEnd) = face_utils.FACIAL_LANDMARKS_IDXS["mouth"]
+REPS = 0
+SMILE = False
+SMILE_MARK = False
+SMILE_TIMESTAMP = -1
 
-print("[INFO] starting video stream thread...")
-vs = VideoStream(src=0).start()
-fileStream = False
-time.sleep(1.0)
+SMILE_NOT_TEETH = 0.3
+SMILE_TEETH = 0.45
 
-fps = FPS().start()
-cv2.namedWindow("test")
 
-while True:
-    frame = vs.read()
-    frame = imutils.resize(frame, width=450)
+def MAR(mouth):
+    d3_9 = dist(mouth[3], mouth[9])
+    d2_10 = dist(mouth[2], mouth[10])
+    d4_8 = dist(mouth[4], mouth[8])
+
+    avg_d = (d3_9 + d2_10 + d4_8) / 3
+    horizontal_d = dist(mouth[0], mouth[6])
+
+    return avg_d / horizontal_d
+
+
+camera = VideoCapture(2)
+file_stream = False
+cv2.namedWindow('SayCheese', cv2.WINDOW_NORMAL)
+
+ok = camera.read()[0]
+while ok:
+    ok, frame = camera.read()
+
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
     rects = detector(gray, 0)
+
+    mar = 0
     for rect in rects:
         shape = predictor(gray, rect)
         shape = face_utils.shape_to_np(shape)
         mouth = shape[mStart:mEnd]
-        mar = smile(mouth)
-        mouthHull = cv2.convexHull(mouth)
-        # print(shape)
-        cv2.drawContours(frame, [mouthHull], -1, (0, 255, 0), 1)
+        mar = MAR(mouth)
 
-        if mar <= .3 or mar > .38:
-            COUNTER += 1
+        if mar <= SMILE_NOT_TEETH or mar > SMILE_TEETH:
+            print(SMILE_TIMESTAMP - time.time())
+            if not SMILE:
+                SMILE_TIMESTAMP = time.time()
+                SMILE = True
+            elif time.time() - SMILE_TIMESTAMP > 0.7 and not SMILE_MARK:
+                REPS += 1
+                SMILE_MARK = True
+
         else:
-            if COUNTER >= 15:
-                TOTAL += 1
-                frame = vs.read()
-                time.sleep(.3)
-                frame2 = frame.copy()
-                img_name = "opencv_frame_{}.png".format(TOTAL)
-                cv2.imwrite(img_name, frame)
-                print("{} written!".format(img_name))
-            COUNTER = 0
+            SMILE = False
+            SMILE_MARK = False
 
-        cv2.putText(frame, "MAR: {}".format(mar), (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
+        mouth_hull = cv2.convexHull(mouth)
+        cv2.drawContours(frame, [mouth_hull], -1, (0, 255, 0), 1)
 
-    cv2.imshow("Frame", frame)
-    fps.update()
+    cv2.putText(frame, f"repetitions: {REPS}", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
+    cv2.putText(frame, f"MAR: {mar}", (10, 70), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
 
-    key2 = cv2.waitKey(1) & 0xFF
-    if key2 == ord('q'):
+    key = cv2.waitKey(1)
+    if key & 0xFF == ord("q"):
         break
 
-fps.stop()
+    cv2.imshow('SayCheese', frame)
 
 cv2.destroyAllWindows()
-vs.stop()
