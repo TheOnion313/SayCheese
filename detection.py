@@ -1,6 +1,8 @@
 from abc import ABC, abstractmethod, abstractclassmethod
 from typing import Union, Tuple, Iterable
 
+import cv2
+
 
 class Detection(ABC):
 
@@ -18,7 +20,14 @@ class Detection(ABC):
     def detect(self, encoding: Iterable[float]) -> bool:
         inp = self.relations_from_encoding(encoding)
         out = self.relations
-        return all(map(lambda i: out[i][0] <= inp <= out[i][-1], range(len(inp) if type(inp) == Iterable else 1)))
+
+        if type(inp) == Iterable:
+            return all(map(lambda i: inp[i] in out[i], range(len(inp))))
+        return inp in out
 
     def __call__(self, encoding):
         return self.detect(encoding)
+
+    @abstractmethod
+    def calibrate(self, me: Union[Iterable[float], Iterable[Iterable[float]]]):
+        pass
