@@ -1,4 +1,4 @@
-from typing import Iterable, Union
+from typing import Iterable, Union, Tuple
 
 from detection import Detection
 from math import dist
@@ -9,6 +9,9 @@ M_START, M_END = 48, 68
 
 
 class DetectSmile(Detection):
+
+    def __init__(self, smile_min):
+        self.smile_min = smile_min
 
     def _MAR(self, mouth):
         d3_9 = dist(mouth[3], mouth[9])
@@ -27,7 +30,13 @@ class DetectSmile(Detection):
         mar = self._MAR(mouth)
         return mar
 
-    def calibrate(self, me: Union[Iterable[float], Iterable[Iterable[float]]]):
-        assert type(me) == Iterable[float]
+    def detect(self, encoding: Iterable[Tuple[float]]) -> bool:
+        return self.relations_from_encoding(encoding) > self.smile_min
 
-        self.relations = range(min(me), 10 ** 10)
+    def calibrate(self, me: Union[
+                        Tuple[Iterable[float], Iterable[float]],
+                        Tuple[Iterable[Iterable[float]], Iterable[Iterable[float]]]
+                        ]) -> None:
+        # assert type(me) == Tuple[Iterable[float], Iterable[float]]
+
+        self.smile_min = min(me[0])

@@ -18,5 +18,8 @@ class Detection(ABC):
         return self.detect(*args, **kwargs)
 
     @abstractmethod
-    def calibrate(self, me: Union[Iterable[float], Iterable[Iterable[float]]]):
+    def calibrate(self, me: Union[
+                        Tuple[Iterable[float], Iterable[float]],
+                        Tuple[Iterable[Iterable[float]], Iterable[Iterable[float]]]
+                        ]) -> None:
         pass

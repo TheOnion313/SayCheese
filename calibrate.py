@@ -1,7 +1,10 @@
 from cv2 import VideoCapture
 from imutils import face_utils
 from math import dist
+
+import test_smile
 from detection import Detection
+from detect_smile import DetectSmile
 from typing import Union, Iterable
 
 import imutils
@@ -25,33 +28,50 @@ def calibrate(gesture: Detection) -> Union[Iterable[float], Iterable[Iterable[fl
     while ok:
         ok, frame = camera.read()
 
+        k = cv2.waitKey(1)
+
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-        rect = detector(gray, 0)[0]
-        shape = predictor(gray, rect)
+        rect = detector(gray, 0)
+        if len(rect) > 0:
+            rect = rect[0]
+            shape = predictor(gray, rect)
 
-        relations = gesture.relations_from_encoding(shape)
+            relations = gesture.relations_from_encoding(shape)
 
-        if cv2.waitKey() & 0xFF == ord('y'):
-            if dt_y == [] and type(relations) == Iterable:
-                for i in relations:
-                    dt_y.append([])
+            frame = cv2.putText(frame, str(relations), (10, 50), cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 255, 0), 2)
+            cv2.imshow("SayCheese", frame)
+            if k & 0xFF == ord('y'):
+                if dt_y == [] and type(relations) == Iterable:
+                    for i in relations:
+                        dt_y.append([])
 
-            if type(relations) == Iterable:
-                for i in range(len(list(relations))):
-                    dt_y[i].append(list(relations)[i])
-            else:
-                dt_y.append(relations)
+                if type(relations) == Iterable:
+                    for i in range(len(list(relations))):
+                        dt_y[i].append(list(relations)[i])
+                else:
+                    dt_y.append(relations)
 
-        if cv2.waitKey() & 0xFF == ord('n'):
-            if dt_n == [] and type(relations) == Iterable:
-                for i in relations:
-                    dt_n.append([])
+            if k & 0xFF == ord('n'):
+                if dt_n == [] and type(relations) == Iterable:
+                    for i in relations:
+                        dt_n.append([])
 
-            if type(relations) == Iterable:
-                for i in range(len(list(relations))):
-                    dt_n[i].append(list(relations)[i])
-            else:
-                dt_n.append(relations)
+                if type(relations) == Iterable:
+                    for i in range(len(list(relations))):
+                        dt_n[i].append(list(relations)[i])
+                else:
+                    dt_n.append(relations)
+
+        if k & 0xFF == ord('q'):
+            break
 
     return dt_y, dt_n
 
+
+
+if __name__ == '__main__':
+    smile = DetectSmile(0)
+
+    smile.calibrate(calibrate(smile))
+    print(smile.smile_min)
+    test_smile.main()
