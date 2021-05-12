@@ -45,6 +45,10 @@ captures/
 .idea/dictionaries
 .idea/libraries
 .idea/**
+
+# Pycharm
+__pycache__/
+
 # Android Studio 3 in .gitignore file.
 .idea/caches
 .idea/modules.xml
