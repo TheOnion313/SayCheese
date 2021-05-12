@@ -39,6 +39,11 @@ def calibrate(gesture: Detection) -> Union[Iterable[float], Iterable[Iterable[fl
             relations = gesture.relations_from_encoding(shape)
 
             frame = cv2.putText(frame, str(relations), (10, 50), cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 255, 0), 2)
+
+            for i, circle in enumerate(face_utils.shape_to_np(shape)):
+                print(circle)
+                cv2.circle(frame, tuple(circle), radius=3, color=(0, 0, 255), thickness=-1)
+                cv2.putText(frame, str(i), tuple(circle), cv2.FONT_HERSHEY_SIMPLEX, 0.4, (0, 255, 0))
             cv2.imshow("SayCheese", frame)
             if k & 0xFF == ord('y'):
                 if dt_y == [] and type(relations) == Iterable:
@@ -68,10 +73,9 @@ def calibrate(gesture: Detection) -> Union[Iterable[float], Iterable[Iterable[fl
     return dt_y, dt_n
 
 
-
 if __name__ == '__main__':
-    smile = DetectSmile(0)
+    smile = DetectSmile(0, 0)
 
     smile.calibrate(calibrate(smile))
     print(smile.smile_min)
-    test_smile.main()
+    test_smile.main(smile.smile_min, smile.eye_mouth_min)
