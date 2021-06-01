@@ -11,10 +11,10 @@ def main():
         INDEX = True
 
     if "--color" in argv:
-        COLOR = tuple(argv[argv.index("--color") + 1].split(","))
+        COLOR = tuple([int(i) for i in argv[argv.index("--color") + 1].split(",")])
 
     if "--radius" in argv:
-        RADIUS = argv[argv.index("--radius") + 1]
+        RADIUS = int(argv[argv.index("--radius") + 1])
 
     if "--port" in argv:
         PORT = argv[argv.index("--port") + 1]
@@ -39,19 +39,18 @@ def main():
         ok, frame = camera.read()
 
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-        rect = detector(gray, 0)
+        rects = detector(gray, 0)
 
         circles = None
 
-        if len(rect) > 0:
-            # global frame
-            rect = rect[0]
-            shape = predictor(gray, rect)
-            circles = shape_to_np(shape)
-
-            for i, circle in enumerate(circles):
-                # global frame
-                frame = cv2.circle(frame, tuple(circles[i]), RADIUS, COLOR)
+        if len(rects) > 0:
+            for rect in rects:
+                shape = predictor(gray, rect)
+                circles = shape_to_np(shape)
+    
+                for i, circle in enumerate(circles):
+                    # global frame
+                    frame = cv2.circle(frame, tuple(circles[i]), RADIUS, COLOR, -1)
 
         cv2.imshow("SayCheese", frame)
         k = cv2.waitKey(1)
