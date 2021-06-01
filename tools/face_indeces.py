@@ -50,7 +50,10 @@ def main():
     
                 for i, circle in enumerate(circles):
                     # global frame
-                    frame = cv2.circle(frame, tuple(circles[i]), RADIUS, COLOR, -1)
+                    frame = cv2.circle(frame, tuple(circle), RADIUS, COLOR, -1)
+
+                    if INDEX:
+                        frame = cv2.putText(frame, str(i), tuple(circle), cv2.FONT_HERSHEY_SIMPLEX, 0.5, COLOR)
 
         cv2.imshow("SayCheese", frame)
         k = cv2.waitKey(1)
@@ -62,7 +65,7 @@ def main():
 
 if __name__ == '__main__':
     global INDEX, COLOR, RADIUS, PORT
-    INDEX = True
+    INDEX = False
     COLOR = (180, 228, 236)
     RADIUS = 0
     PORT = 0
