@@ -91,3 +91,8 @@ lint/tmp/
 
 # dlib venv
 venv/**
+
+#video files
+**.mp4
+**.avi
+**.mkv
