@@ -7,5 +7,5 @@ public abstract class Gesture {
 
     public abstract ArrayList<Float> relationsFromEncoding(ArrayList<Point> landmarks);
     public abstract boolean detect(ArrayList<Point> landmarks);
-    public abstract void calibrate(ArrayList<ArrayList<Float>> me);
+    public abstract void calibrate(ArrayList<ArrayList<ArrayList<Float>>> me);
 }
